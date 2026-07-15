@@ -294,7 +294,6 @@ https://fastly.jsdelivr.net/gh/zzzhhe123/Mihomo-Script-Rules@main/Config/mihomoC
 | --- | --- | --- | --- |
 | **脚本语法与功能自检** | `.github/workflows/lint.yml` | push / PR | 自动运行 `node --check` 语法检查 + 运行时功能验证 + YAML 生成验证，防止改坏脚本 |
 | **规则集可达性检查** | `.github/workflows/rule-check.yml` | 每天北京时间 16:00 / 手动 | 自动访问所有 rule-provider URL，失效自动开 Issue 告警 |
-| **自动发布 Release** | `.github/workflows/release.yml` | 打 `v*` tag | 自动打包脚本 + yaml + zip，创建 GitHub Release |
 
 ### YAML 配置自动生成
 
@@ -302,18 +301,6 @@ https://fastly.jsdelivr.net/gh/zzzhhe123/Mihomo-Script-Rules@main/Config/mihomoC
 
 ```bash
 node generate-yaml.cjs
-```
-
-该工具零依赖（不需要安装任何 npm 包），内置 YAML 序列化器，直接读取脚本 `main()` 输出并转换为 yaml。
-
-### 发版流程
-
-修改脚本后，推送代码并打 tag 即可自动发布新版本：
-
-```bash
-git push origin main                          # 推送代码
-git tag -a v1.1.0 -m "描述改动内容"            # 打版本 tag
-git push origin v1.1.0                         # 推送 tag，自动触发 Release
 ```
 
 ---
