@@ -1,20 +1,26 @@
 # .github/workflows/lint.yml
-# 作用：每次 push 或提 PR 时，自动检查脚本语法 + 运行时功能验证
-# 触发：push 到 main 分支，或发起 Pull Request
-name: 脚本语法与功能自检
+# 作用：每次 push 时自动检查脚本语法 + 生成 yaml + 有变化则自动提交回仓库
+# 触发：push 到 main 分支
+name: 脚本自检与 YAML 自动同步
 
 on:
   push:
     branches: [main]
+    paths:
+      - 'Mihomo-Script-Rules.js'  # 只有脚本本身改动才触发完整流程
   pull_request:
     branches: [main]
 
 jobs:
   lint:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # 允许 Actions 提交回仓库
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 需要完整历史才能正确提交
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -51,5 +57,18 @@ jobs:
             fs.unlinkSync(tmp);
           "
 
-      - name: YAML 生成验证
+      - name: 生成 mihomoConfig.yaml
         run: node generate-yaml.cjs
+
+      - name: 检查 yaml 是否有变化，有则自动提交
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet Config/mihomoConfig.yaml; then
+            echo "yaml 无变化，跳过提交"
+          else
+            echo "yaml 有变化，自动提交"
+            git add Config/mihomoConfig.yaml
+            git commit -m "chore: 自动同步 mihomoConfig.yaml [skip ci]"
+            git push
+          fi
