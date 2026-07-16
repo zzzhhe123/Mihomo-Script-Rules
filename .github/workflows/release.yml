@@ -25,6 +25,20 @@ jobs:
       - name: 生成 mihomoConfig.yaml
         run: node generate-yaml.cjs
 
+      - name: 构建发布标题
+        id: release_name
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          BODY: ${{ github.event.release.body }}
+        run: |
+          # 取 body 第一行作为标题后缀，空则不加
+          SUFFIX=$(echo "$BODY" | head -1 | xargs)
+          if [ -n "$SUFFIX" ]; then
+            echo "name=${REF_NAME} - ${SUFFIX}" >> $GITHUB_OUTPUT
+          else
+            echo "name=${REF_NAME}" >> $GITHUB_OUTPUT
+          fi
+
       - name: 打包附件
         run: |
           mkdir -p release
@@ -36,7 +50,7 @@ jobs:
       - name: 创建 GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: ${{ github.ref_name }}
+          name: ${{ steps.release_name.outputs.name }}
           body: |
             ## Mihomo-Script-Rules ${{ github.ref_name }}
 
