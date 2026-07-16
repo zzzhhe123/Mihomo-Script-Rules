@@ -120,12 +120,12 @@ proxies:
     server: 4.4.4.2
     port: 443
     client-fingerprint: chrome
-  - name: 🌐 其他 01
+  - name: Random Node 01
     type: vmess
     server: 20.20.20.1
     port: 443
     client-fingerprint: chrome
-  - name: 🌐 其他 02
+  - name: 某地节点
     type: vless
     server: 20.20.20.2
     port: 443
@@ -1391,8 +1391,8 @@ proxy-groups:
     proxies:
       - "其他节点-自动选择"
       - "其他节点-负载均衡"
-      - 🌐 其他 01
-      - 🌐 其他 02
+      - Random Node 01
+      - 某地节点
   - interval: 180
     timeout: 3000
     url: "https://cp.cloudflare.com/generate_204"
@@ -1404,8 +1404,8 @@ proxy-groups:
     hidden: true
     name: "其他节点-自动选择"
     proxies:
-      - 🌐 其他 01
-      - 🌐 其他 02
+      - Random Node 01
+      - 某地节点
   - interval: 180
     timeout: 3000
     url: "https://cp.cloudflare.com/generate_204"
@@ -1417,8 +1417,8 @@ proxy-groups:
     hidden: true
     name: "其他节点-负载均衡"
     proxies:
-      - 🌐 其他 01
-      - 🌐 其他 02
+      - Random Node 01
+      - 某地节点
 rule-providers:
   DownloadApps:
     type: http
@@ -1784,5 +1784,6 @@ rules:
   - "DOMAIN-SUFFIX,local,直连"
   - "DOMAIN-SUFFIX,lan,直连"
   - "GEOIP,LAN,直连,no-resolve"
+  - "AND,((NETWORK,UDP),(DST-PORT,443),(OR,((RULE-SET,cn_additional),(RULE-SET,cn_ip,no-resolve)))),直连"
   - "AND,((NETWORK,UDP),(DST-PORT,443)),QUIC处理"
   - "MATCH,默认代理"
