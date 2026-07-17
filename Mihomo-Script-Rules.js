@@ -51,8 +51,8 @@ const tunEnable = false;
 const quicEnable = true;
 
 const quicRules = [
-  'AND,((NETWORK,UDP),(DST-PORT,443),(OR,((RULE-SET,cn_additional),(RULE-SET,cn_ip,no-resolve)))),直连',
-  'AND,((NETWORK,UDP),(DST-PORT,443)),QUIC处理',
+  'AND,(NETWORK,UDP),(DST-PORT,443),(OR,(RULE-SET,cn_additional),(RULE-SET,cn_ip,no-resolve)),直连',
+  'AND,(NETWORK,UDP),(DST-PORT,443),QUIC处理',
 ];
 
 const rules = [
@@ -61,6 +61,9 @@ const rules = [
   'DOMAIN-KEYWORD,mcdn.bili,REJECT',
   'RULE-SET,private,直连',
   'RULE-SET,private_ip,直连,no-resolve',
+  
+  ...(quicEnable ? quicRules : []),
+  
   'DOMAIN-SUFFIX,ibytedtos.com,直连',
   'DOMAIN-SUFFIX,bytecdn.cn,直连',
   'DOMAIN-SUFFIX,snssdk.com,直连',
@@ -289,7 +292,7 @@ const serviceConfigs = [
     key: 'ai',
     name: 'AI',
     providers: {
-      ai: geositeMrs('category-ai-!cn', 'ai'),
+      ai: geositeMrs('category-ai', 'ai'),
     },
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/ChatGPT.png',
     rules: ['RULE-SET,ai,AI'],
@@ -432,6 +435,7 @@ const serviceConfigs = [
     providers: {
       adblockmihomolite: {
         ...geositeMrs('ads', 'adblockmihomolite'),
+        'path-in-bundle': undefined,
         interval: 43200,
         url: 'https://fastly.jsdelivr.net/gh/217heidai/adblockfilters@main/rules/adblockmihomolite.mrs',
       },
@@ -693,16 +697,16 @@ function main(config) {
     return functionalGroups.indexOf(a) - functionalGroups.indexOf(b);
   });
 
-const regionSelectNames = generatedRegionGroups
-  .filter((g) => g.type === 'select')
-  .map((g) => g.name);
+  const regionSelectNames = generatedRegionGroups
+    .filter((g) => g.type === 'select')
+    .map((g) => g.name);
   
   const globalGroup = {
-  ...selectBaseOption,
-  name: 'GLOBAL',
-  proxies: [...functionalGroupsSorted.map((g) => g.name), ...regionSelectNames],
-  icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Global.png',
-};
+    ...selectBaseOption,
+    name: 'GLOBAL',
+    proxies: [...functionalGroupsSorted.map((g) => g.name), ...regionSelectNames],
+    icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Global.png',
+  };
 
   const chinaDNS = [
     'https://dns.alidns.com/dns-query#直连',
@@ -718,8 +722,6 @@ const regionSelectNames = generatedRegionGroups
     'https://dns.google/dns-query#默认代理',
     'https://dns.cloudflare.com/dns-query#默认代理',
   ];
-
-  const fallbackDNS = chinaDNS;
 
   config['sniffer'] = {
     enable: true,
@@ -798,7 +800,6 @@ const regionSelectNames = generatedRegionGroups
 
     nameserver: [
       ...foreignDNS,
-      ...fallbackDNS,
     ],
 
     'nameserver-policy': Object.fromEntries([
@@ -908,7 +909,7 @@ const regionSelectNames = generatedRegionGroups
     'DOMAIN-SUFFIX,local,直连',
     'DOMAIN-SUFFIX,lan,直连',
     'GEOIP,LAN,直连,no-resolve',
-    ...(quicEnable ? quicRules : []),
+
     'MATCH,默认代理',
   ];
 
