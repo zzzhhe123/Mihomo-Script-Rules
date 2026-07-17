@@ -1,7 +1,3 @@
-// 节点智能归类（地区/倍率）｜低质节点过滤｜指纹自动补全
-// 策略组分流｜广告拦截｜QUIC 管控｜TUN 可选｜双栈直连
-// DNS 智能分流（fake-ip）｜远程规则自动更新（mrs）
-
 const ruleOptionsEnable = {
   ai: true,
   youtube: true,
@@ -43,8 +39,8 @@ const regionDefinitionsEnable = {
 };
 
 const excludeFilterEnable = true;
-
-const excludeFilter = /群|返利|循环|官[网址]|客服|网站|网址|获取|订阅|流量|到期|机场|下次|备用|过期|已用|联系|邮箱|工单|通知|防止|国内|地址|频道|无法|说明|使用|提示|特别|访问|教程|关注|更新|作者|加入|超时|收藏|福利|邀请|好友|选择|剩余|公益|发布|通路|登录|禁止|定时|渠道|牢记|永久|余额|阁下|本站|刷新|导航|⚠️|@|Expire|https?:\/\/|www\.|\.com(?:$|[^a-zA-Z0-9])/u;
+const excludeFilter =
+  /群|返利|循环|官[网址]|客服|网站|网址|获取|订阅|流量|到期|机场|下次|备用|过期|已用|联系|邮箱|工单|通知|防止|国内|地址|频道|无法|说明|使用|提示|特别|访问|教程|关注|更新|作者|加入|超时|收藏|福利|邀请|好友|选择|剩余|公益|发布|通路|登录|禁止|定时|渠道|牢记|永久|余额|阁下|本站|刷新|导航|⚠️|@|Expire|https?:\/\/|www\.|\.com(?:$|[^a-zA-Z0-9])/u;
 
 const tunEnable = false;
 
@@ -61,9 +57,7 @@ const rules = [
   'DOMAIN-KEYWORD,mcdn.bili,REJECT',
   'RULE-SET,private,直连',
   'RULE-SET,private_ip,直连,no-resolve',
-  
   ...(quicEnable ? quicRules : []),
-  
   'DOMAIN-SUFFIX,ibytedtos.com,直连',
   'DOMAIN-SUFFIX,bytecdn.cn,直连',
   'DOMAIN-SUFFIX,snssdk.com,直连',
@@ -178,20 +172,37 @@ const regionDefinitions = [
   },
   {
     name: '低倍率节点',
-    regex: /^(?!.*(?:剩|期|客户端|软件|官网|流量|订阅|v\d(?!ray|less))).*(?:低倍|低倍率|省流|下载|(?:^|[^\d])0\.[0-5])/u,
+    regex:
+      /^(?!.*(?:剩|期|客户端|软件|官网|流量|订阅|v\d(?!ray|less))).*(?:低倍|低倍率|省流|下载|(?:^|[^\d])0\.[0-5])/u,
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Available_1.png',
   },
   {
     name: '高倍率节点',
-    regex: /^(?!.*(?:剩|期|客户端|软件|官网|流量|订阅|v\d(?!ray|less))).*(?:[*×xX✕✖⨉]\s*(?:[2-9]\d*|[1-9]\d+)(?:\.\d+)?|(?:^|[^\d.])(?:[2-9]\d*|[1-9]\d+)(?:\.\d+)?\s*(?:倍|倍率|[*×xX✕✖⨉]))/u,
+    regex:
+      /^(?!.*(?:剩|期|客户端|软件|官网|流量|订阅|v\d(?!ray|less))).*(?:[*×xX✕✖⨉]\s*(?:[2-9]\d*|[1-9]\d+)(?:\.\d+)?|(?:^|[^\d.])(?:[2-9]\d*|[1-9]\d+)(?:\.\d+)?\s*(?:倍|倍率|[*×xX✕✖⨉]))/u,
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Airport.png',
   },
 ];
 
 const ruleProviderFormatMrs = { format: 'mrs' };
-const ruleProviderCommonDomain = { type: 'http', interval: 86400, behavior: 'domain' };
-const ruleProviderCommonIpcidr = { type: 'http', interval: 86400, behavior: 'ipcidr' };
-const ruleProviderCommonClassical = { type: 'http', interval: 86400, behavior: 'classical' };
+
+const ruleProviderCommonDomain = {
+  type: 'http',
+  interval: 86400,
+  behavior: 'domain',
+};
+
+const ruleProviderCommonIpcidr = {
+  type: 'http',
+  interval: 86400,
+  behavior: 'ipcidr',
+};
+
+const ruleProviderCommonClassical = {
+  type: 'http',
+  interval: 86400,
+  behavior: 'classical',
+};
 
 const geositeMrs = (geositePath, pathName) => ({
   ...ruleProviderCommonDomain,
@@ -200,6 +211,7 @@ const geositeMrs = (geositePath, pathName) => ({
   path: `./ruleset/${pathName}.mrs`,
   'path-in-bundle': `geo/geosite/${geositePath}.mrs`,
 });
+
 const geoipMrs = (geoipPath, pathName) => ({
   ...ruleProviderCommonIpcidr,
   ...ruleProviderFormatMrs,
@@ -270,48 +282,38 @@ const loadBalanceBaseOption = {
   hidden: true,
 };
 
-function extractLowMultiplier(name) {
-  let match = name.match(/(?:^|[^\d])(0\.[0-5])\s*(?:倍|倍率|[xX×])?/u);
-  if (match) return match[1] + 'x';
-  if (/低倍|低倍率/.test(name)) return '低倍';
-  if (/省流/.test(name)) return '省流';
-  if (/下载/.test(name)) return '下载';
-  return '低倍';
-}
-
-function extractHighMultiplier(name) {
-  let match = name.match(/(\d+(?:\.\d+)?)\s*[xX×倍]/u);
-  if (match) return match[1] + 'x';
-  match = name.match(/[×*xX]\s*(\d+(?:\.\d+)?)/u);
-  if (match) return match[1] + 'x';
-  return '';
-}
+const extractMultiplier = (name, isHigh) => {
+  if (!isHigh) {
+    const match = name.match(/(?:^|[^\d])(0\.[0-5])\s*(?:倍|倍率|[xX×])?/u);
+    if (match) return `${match[1]}x`;
+    return /低倍|低倍率|省流|下载/.test(name) ? (name.match(/省流|下载/) || ['低倍'])[0] : '低倍';
+  }
+  const match = name.match(/(\d+(?:\.\d+)?)\s*[xX×倍]/u) || name.match(/[×*xX]\s*(\d+(?:\.\d+)?)/u);
+  return match ? `${match[1]}x` : '';
+};
 
 const serviceConfigs = [
   {
     key: 'ai',
     name: 'AI',
     providers: {
-      ai: geositeMrs('category-ai', 'ai'),
+      openai: geositeMrs('openai', 'openai'),
+      anthropic: geositeMrs('anthropic', 'anthropic'),
     },
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/ChatGPT.png',
-    rules: ['RULE-SET,ai,AI'],
+    rules: ['RULE-SET,openai,AI', 'RULE-SET,anthropic,AI'],
   },
   {
     key: 'youtube',
     name: 'YouTube',
-    providers: {
-      youtube: geositeMrs('youtube', 'youtube'),
-    },
+    providers: { youtube: geositeMrs('youtube', 'youtube') },
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/YouTube.png',
     rules: ['RULE-SET,youtube,YouTube'],
   },
   {
     key: 'googlefcm',
     name: 'FCM',
-    providers: {
-      googlefcm: geositeMrs('googlefcm', 'googlefcm'),
-    },
+    providers: { googlefcm: geositeMrs('googlefcm', 'googlefcm') },
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Google.png',
     rules: ['RULE-SET,googlefcm,FCM'],
   },
@@ -328,27 +330,21 @@ const serviceConfigs = [
   {
     key: 'github',
     name: 'GitHub',
-    providers: {
-      github: geositeMrs('github', 'github'),
-    },
+    providers: { github: geositeMrs('github', 'github') },
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/GitHub.png',
     rules: ['RULE-SET,github,GitHub'],
   },
   {
     key: 'microsoft',
     name: 'Microsoft',
-    providers: {
-      microsoft: geositeMrs('microsoft', 'microsoft'),
-    },
+    providers: { microsoft: geositeMrs('microsoft', 'microsoft') },
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Microsoft.png',
     rules: ['RULE-SET,microsoft,Microsoft'],
   },
   {
     key: 'apple',
     name: 'Apple',
-    providers: {
-      apple: geositeMrs('apple', 'apple'),
-    },
+    providers: { apple: geositeMrs('apple', 'apple') },
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Apple.png',
     rules: ['RULE-SET,apple,Apple'],
   },
@@ -375,9 +371,7 @@ const serviceConfigs = [
   {
     key: 'steam',
     name: 'Steam',
-    providers: {
-      steam: geositeMrs('steam', 'steam'),
-    },
+    providers: { steam: geositeMrs('steam', 'steam') },
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Steam.png',
     rules: ['RULE-SET,steam,Steam'],
   },
@@ -394,27 +388,21 @@ const serviceConfigs = [
   {
     key: 'instagram',
     name: 'Instagram',
-    providers: {
-      instagram: geositeMrs('instagram', 'instagram'),
-    },
+    providers: { instagram: geositeMrs('instagram', 'instagram') },
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Instagram.png',
     rules: ['RULE-SET,instagram,Instagram'],
   },
   {
     key: 'spotify',
     name: 'Spotify',
-    providers: {
-      spotify: geositeMrs('spotify', 'spotify'),
-    },
+    providers: { spotify: geositeMrs('spotify', 'spotify') },
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Spotify.png',
     rules: ['RULE-SET,spotify,Spotify'],
   },
   {
     key: 'tiktok',
     name: 'TikTok',
-    providers: {
-      tiktok: geositeMrs('tiktok', 'tiktok'),
-    },
+    providers: { tiktok: geositeMrs('tiktok', 'tiktok') },
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/TikTok.png',
     rules: ['RULE-SET,tiktok,TikTok'],
   },
@@ -445,134 +433,89 @@ const serviceConfigs = [
   },
 ];
 
-function createRegionGroup(name, icon, proxies) {
+const createRegionGroup = (name, icon, proxies) => {
   const autoTestName = `${name}-自动选择`;
   const loadBalanceName = `${name}-负载均衡`;
-
   return [
-    {
-      ...selectBaseOption,
-      name,
-      icon,
-      proxies: [autoTestName, loadBalanceName, ...proxies],
-    },
-    {
-      ...urlTestBaseOption,
-      name: autoTestName,
-      proxies,
-    },
-    {
-      ...loadBalanceBaseOption,
-      name: loadBalanceName,
-      proxies,
-    },
+    { ...selectBaseOption, name, icon, proxies: [autoTestName, loadBalanceName, ...proxies] },
+    { ...urlTestBaseOption, name: autoTestName, proxies },
+    { ...loadBalanceBaseOption, name: loadBalanceName, proxies },
   ];
-}
+};
 
 function main(config) {
   delete config['global-client-fingerprint'];
-
-  if (!Array.isArray(config.proxies)) {
-    config.proxies = [];
-  }
-
-  if (excludeFilterEnable) {
-    config.proxies = config.proxies.filter((proxy) => {
-      if (!proxy || !proxy.name) return false;
-      return !excludeFilter.test(proxy.name);
-    });
-  }
-
-  const fingerprintSupportedProxyTypes = ['vmess', 'vless', 'trojan', 'hysteria2', 'hy2', 'tuic'];
-  for (const proxy of config.proxies) {
-    const type = proxy.type?.toLowerCase();
-    if (fingerprintSupportedProxyTypes.includes(type) && !proxy['client-fingerprint']) {
-      proxy['client-fingerprint'] = 'chrome';
-    }
-  }
-
-  const proxies = config.proxies;
-
-  const allDirectOrReject = proxies.every((p) => {
-    const type = p.type?.toLowerCase();
-    return type === 'direct' || type === 'reject';
-  });
-
-  if (!proxies.length || allDirectOrReject) {
+  delete config['sub-rules'];
+  const rawProxies = config.proxies ?? [];
+  const hasValidProxy = rawProxies.some((p) => p.type && !['direct', 'reject'].includes(p.type.toLowerCase()));
+  if (!hasValidProxy) {
     throw new Error('配置文件中未找到有效代理节点，请使用机场提供的原始订阅配置进行覆写');
   }
 
-  const enabledDefinitions = regionDefinitions.filter((r) => regionDefinitionsEnable[r.name] === true);
+  const enabledDefinitions = regionDefinitions.filter((r) => regionDefinitionsEnable[r.name]);
   const regionGroups = Object.fromEntries(enabledDefinitions.map((r) => [r.name, { ...r, proxies: [] }]));
+  const regionFlags = Object.fromEntries(enabledDefinitions.filter((r) => r.flag).map((r) => [r.name, r.flag]));
+
+  const processedProxies = [];
   const otherProxies = [];
+  const regionCounters = new Map();
 
-  const regionFlags = Object.fromEntries(
-    enabledDefinitions
-      .filter((r) => r.flag)
-      .map((r) => [r.name, r.flag])
-  );
-  const regionCounters = {};
+  const fingerprintSupported = new Set(['vmess', 'vless', 'trojan', 'hysteria2', 'hy2', 'tuic']);
 
-  for (const proxy of proxies) {
+  for (const proxy of rawProxies) {
     const originalName = proxy.name;
+    if (!originalName) continue;
+
+    if (excludeFilterEnable && excludeFilter.test(originalName)) continue;
+
+    if (fingerprintSupported.has(proxy.type?.toLowerCase())) {
+      proxy['client-fingerprint'] ??= 'chrome';
+    }
+
     let matchedNormalRegionName = null;
     let matchedNormalRegion = false;
-    let matchedGroups = [];
+    const matchedGroups = [];
 
     for (const region of enabledDefinitions) {
       if (region.regex.test(originalName)) {
         matchedGroups.push(region.name);
-        
         if (region.name !== '低倍率节点' && region.name !== '高倍率节点') {
           matchedNormalRegion = true;
-          if (!matchedNormalRegionName) {
-            matchedNormalRegionName = region.name;
-          }
+          matchedNormalRegionName ??= region.name;
         }
       }
     }
-    
-    const isLowMultiplier = matchedGroups.includes('低倍率节点');
-    const isHighMultiplier = matchedGroups.includes('高倍率节点');
 
+    const isLow = matchedGroups.includes('低倍率节点');
+    const isHigh = matchedGroups.includes('高倍率节点');
     let newName = originalName;
+
     if (matchedNormalRegionName) {
-      const flag = regionFlags[matchedNormalRegionName] || '🏳️';
-      if (isLowMultiplier || isHighMultiplier) {
-        const multiKey = matchedNormalRegionName + '_multi';
-        if (!regionCounters[multiKey]) regionCounters[multiKey] = 0;
-        regionCounters[multiKey]++;
-        const serial = regionCounters[multiKey].toString().padStart(2, '0');
-        newName = `${flag} ${matchedNormalRegionName} ${serial}`;
-      } else {
-        if (!regionCounters[matchedNormalRegionName]) regionCounters[matchedNormalRegionName] = 0;
-        regionCounters[matchedNormalRegionName]++;
-        const serial = regionCounters[matchedNormalRegionName].toString().padStart(2, '0');
-        newName = `${flag} ${matchedNormalRegionName} ${serial}`;
-      }
+      const flag = regionFlags[matchedNormalRegionName] ?? '🏳️';
+      const counterKey = isLow || isHigh ? `${matchedNormalRegionName}_multi` : matchedNormalRegionName;
+
+      const count = (regionCounters.get(counterKey) ?? 0) + 1;
+      regionCounters.set(counterKey, count);
+
+      const serial = String(count).padStart(2, '0');
+      newName = `${flag} ${matchedNormalRegionName} ${serial}`;
     }
 
-    if (isLowMultiplier) {
-      const low = extractLowMultiplier(originalName);
-      if (low) newName += ' ' + low;
-    } else if (isHighMultiplier) {
-      const high = extractHighMultiplier(originalName);
-      if (high) newName += ' ' + high;
-    }
+    if (isLow) newName += ` ${extractMultiplier(originalName, false)}`;
+    else if (isHigh) newName += ` ${extractMultiplier(originalName, true)}`;
 
     proxy.name = newName;
+    processedProxies.push(proxy);
 
     for (const groupName of matchedGroups) {
-      if ((isLowMultiplier || isHighMultiplier) && groupName !== '低倍率节点' && groupName !== '高倍率节点') {
-        continue;
-      }
+      if ((isLow || isHigh) && !['低倍率节点', '高倍率节点'].includes(groupName)) continue;
       regionGroups[groupName].proxies.push(newName);
     }
 
-    if (!matchedNormalRegion) {
-      otherProxies.push(newName);
-    }
+    if (!matchedNormalRegion) otherProxies.push(newName);
   }
+
+  config.proxies = processedProxies;
 
   const generatedRegionGroups = enabledDefinitions
     .filter((r) => regionGroups[r.name].proxies.length > 0)
@@ -589,20 +532,21 @@ function main(config) {
   }
 
   const groupNamesOfSelect = generatedRegionGroups
-    .filter((g) => g.type === 'select')
-    .map((g) => g.name)
-    .filter((n) => !n.includes('倍率'));
-
-  const functionalGroups = [];
-  const finalRules = [...rules];
-  const finalRuleProviders = { ...baseRuleProviders };
+    .filter((g) => g.type === 'select' && !g.name.includes('倍率'))
+    .map((g) => g.name);
+  const autoTestProxies = generatedRegionGroups
+    .filter((g) => g.type === 'url-test' && !g.name.includes('倍率'))
+    .map((g) => g.name);
+  const loadBalanceProxies = generatedRegionGroups
+    .filter((g) => g.type === 'load-balance' && !g.name.includes('倍率'))
+    .map((g) => g.name);
 
   const proxyModes = {
     default: ['默认代理', '直连', '自动选择', '负载均衡', ...groupNamesOfSelect],
     reject: ['REJECT', 'DIRECT'],
   };
 
-  functionalGroups.push(
+  const functionalGroups = [
     {
       ...selectBaseOption,
       name: '默认代理',
@@ -612,29 +556,24 @@ function main(config) {
     {
       ...urlTestBaseOption,
       name: '自动选择',
-      proxies: (() => {
-        const names = generatedRegionGroups.filter((g) => g.type === 'url-test' && !g.name.includes('倍率')).map((g) => g.name);
-        return names.length > 0 ? names : ['直连'];
-      })(),
+      proxies: autoTestProxies.length ? autoTestProxies : ['直连'],
     },
     {
       ...loadBalanceBaseOption,
       name: '负载均衡',
-      proxies: (() => {
-        const names = generatedRegionGroups.filter((g) => g.type === 'load-balance' && !g.name.includes('倍率')).map((g) => g.name);
-        return names.length > 0 ? names : ['直连'];
-      })(),
+      proxies: loadBalanceProxies.length ? loadBalanceProxies : ['直连'],
     },
     {
       ...selectBaseOption,
       name: 'QUIC处理',
       proxies: ['默认代理', 'REJECT'],
       icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Lock.png',
-    }
-  );
+    },
+  ];
 
-  delete config['sub-rules'];
-  
+  const finalRules = [...rules];
+  const finalRuleProviders = { ...baseRuleProviders };
+
   const orderedServiceConfigs = [
     ...serviceConfigs.filter((s) => s.key === 'adblock'),
     ...serviceConfigs.filter((s) => s.key !== 'adblock'),
@@ -643,16 +582,13 @@ function main(config) {
   for (const svc of orderedServiceConfigs) {
     if (!ruleOptionsEnable[svc.key]) continue;
     finalRules.push(...svc.rules);
-    const providers = svc.providers || {};
-    for (const [providerName, providerConfig] of Object.entries(providers)) {
-      finalRuleProviders[providerName] = providerConfig;
-    }
-  
+    Object.assign(finalRuleProviders, svc.providers);
+
     functionalGroups.push({
       ...selectBaseOption,
       name: svc.name,
       icon: svc.icon,
-      proxies: [...proxyModes[svc.proxyMode || 'default']],
+      proxies: proxyModes[svc.proxyMode ?? 'default'],
     });
   }
 
@@ -688,202 +624,147 @@ function main(config) {
     'Spotify',
   ];
 
+  const orderMap = new Map(functionalGroupDisplayOrder.map((name, idx) => [name, idx]));
   const functionalGroupsSorted = [...functionalGroups].sort((a, b) => {
-    const indexA = functionalGroupDisplayOrder.indexOf(a.name);
-    const indexB = functionalGroupDisplayOrder.indexOf(b.name);
-    const orderA = indexA === -1 ? Number.MAX_SAFE_INTEGER : indexA;
-    const orderB = indexB === -1 ? Number.MAX_SAFE_INTEGER : indexB;
-    if (orderA !== orderB) return orderA - orderB;
-    return functionalGroups.indexOf(a) - functionalGroups.indexOf(b);
+    const orderA = orderMap.get(a.name) ?? Number.MAX_SAFE_INTEGER;
+    const orderB = orderMap.get(b.name) ?? Number.MAX_SAFE_INTEGER;
+    return orderA === orderB ? functionalGroups.indexOf(a) - functionalGroups.indexOf(b) : orderA - orderB;
   });
 
-  const regionSelectNames = generatedRegionGroups
-    .filter((g) => g.type === 'select')
-    .map((g) => g.name);
-  
   const globalGroup = {
     ...selectBaseOption,
     name: 'GLOBAL',
-    proxies: [...functionalGroupsSorted.map((g) => g.name), ...regionSelectNames],
+    proxies: [
+      ...functionalGroupsSorted.map((g) => g.name),
+      ...generatedRegionGroups.filter((g) => g.type === 'select').map((g) => g.name),
+    ],
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Global.png',
   };
 
-  const chinaDNS = [
-    'https://dns.alidns.com/dns-query#直连',
-    'https://doh.pub/dns-query#直连',
-  ];
+  const chinaDNS = ['https://dns.alidns.com/dns-query#直连', 'https://doh.pub/dns-query#直连'];
+  const foreignDNS = ['https://dns.google/dns-query#默认代理', 'https://dns.cloudflare.com/dns-query#默认代理'];
 
-  const chinaDNSPlain = [
-    'https://dns.alidns.com/dns-query',
-    'https://doh.pub/dns-query',
-  ];
-
-  const foreignDNS = [
-    'https://dns.google/dns-query#默认代理',
-    'https://dns.cloudflare.com/dns-query#默认代理',
-  ];
-
-  config['sniffer'] = {
-    enable: true,
-    'force-dns-mapping': true,
-    'parse-pure-ip': true,
-    'override-destination': true,
-    sniff: {
-      HTTP: {
-        ports: [80, '8080-8880'],
+  Object.assign(config, {
+    mode: 'rule',
+    'mixed-port': 7890,
+    'allow-lan': true,
+    ipv6: true,
+    'bind-address': '*',
+    'unified-delay': true,
+    'tcp-concurrent': true,
+    'keep-alive-idle': 30,
+    'keep-alive-interval': 15,
+    'find-process-mode': 'strict',
+    'geodata-mode': false,
+    'external-controller': '127.0.0.1:9090',
+    'external-ui': 'ui',
+    'external-ui-url': 'https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip',
+    profile: {
+      'store-selected': true,
+      'store-fake-ip': true,
+    },
+    experimental: {
+      'quic-go-disable-gso': true,
+      'quic-go-disable-ecn': true,
+      'dialer-ip4p-convert': false,
+    },
+    'proxy-groups': [globalGroup, ...functionalGroupsSorted, ...generatedRegionGroups],
+    'rule-providers': finalRuleProviders,
+    hosts: {
+      'dns.alidns.com': ['223.5.5.5', '223.6.6.6', '2400:3200::1', '2400:3200:baba::1'],
+      'doh.pub': ['1.12.12.12', '120.53.53.53'],
+      'dns.cloudflare.com': ['1.1.1.1', '1.0.0.1'],
+      'dns.google': ['8.8.8.8', '8.8.4.4', '2001:4860:4860::8888', '2001:4860:4860::8844'],
+      'cn.bing.com': 'global.bing.com',
+    },
+    ntp: {
+      enable: true,
+      'write-to-system': false,
+      server: 'ntp.aliyun.com',
+      port: 123,
+      interval: 30,
+      'dialer-proxy': 'DIRECT',
+    },
+    sniffer: {
+      enable: true,
+      'force-dns-mapping': true,
+      'parse-pure-ip': true,
+      'override-destination': true,
+      sniff: {
+        HTTP: { ports: [80, '8080-8880'] },
+        TLS: { ports: [443, 8443] },
+        QUIC: { ports: [443, 8443] },
       },
-      TLS: {
-        ports: [443, 8443],
-      },
-      QUIC: {
-        ports: [443, 8443],
+      'skip-domain': ['+.mijia.com', '+.push.apple.com', 'gs.apple.com', 'gsp-ssl.ls.apple.com', '+.lan', '+.local'],
+    },
+    dns: {
+      enable: true,
+      ipv6: true,
+      listen: ':1053',
+      'cache-algorithm': 'arc',
+      'use-hosts': true,
+      'use-system-hosts': false,
+      'prefer-h3': false,
+      'enhanced-mode': 'fake-ip',
+      'fake-ip-range': '198.18.0.0/15',
+      'fake-ip-filter': [
+        '*.lan',
+        '*.local',
+        'dns.msftncsi.com',
+        'www.msftncsi.com',
+      'www.msftconnecttest.com',
+        'connectivitycheck.gstatic.com',
+        'connectivitycheck.android.com',
+        'connectivitycheck.platform.hicloud.com',
+        'time.*.com',
+        'time.*.gov',
+        'time.*.edu.cn',
+        'time.*.apple.com',
+        'time-ios.apple.com',
+        'time1.cloud.tencent.com',
+        'ntp.*.com',
+        'ntp.aliyun.com',
+        'pool.ntp.org',
+        '*.ntp.org',
+        '+.msftconnecttest.com',
+        '+.msftncsi.com',
+        '+.srv.nintendo.net',
+        '+.stun.playstation.net',
+        '+.xboxlive.com',
+        '+.ipv6.microsoft.com',
+        'rule-set:fakeip_filter',
+      ],
+      'default-nameserver': ['223.5.5.5', '1.12.12.12'],
+      'proxy-server-nameserver': [
+        '223.5.5.5',
+        '1.12.12.12',
+        'https://dns.alidns.com/dns-query',
+        'https://doh.pub/dns-query',
+      ],
+      nameserver: foreignDNS,
+      'direct-nameserver': ['223.5.5.5', '119.29.29.29'],
+      'direct-nameserver-follow-policy': true,
+      'nameserver-policy': {
+        'rule-set:private': chinaDNS,
+        'rule-set:cn': chinaDNS,
+        'rule-set:cn_additional': chinaDNS,
+        'rule-set:apple_cn': chinaDNS,
+        'rule-set:cloudflare_cn': chinaDNS,
+        'rule-set:games_cn': chinaDNS,
+        'rule-set:nvidia_cn': chinaDNS,
+        'rule-set:gfw': foreignDNS,
       },
     },
-    'skip-domain': [
-      '+.mijia.com',
-      '+.push.apple.com',
-      'gs.apple.com',
-      'gsp-ssl.ls.apple.com',
-      '+.lan',
-      '+.local',
-    ],
-  };
-
-  config['dns'] = {
-    enable: true,
-    ipv6: true,
-    listen: ':1053',
-    'cache-algorithm': 'arc',
-    'use-hosts': true,
-    'use-system-hosts': false,
-    'prefer-h3': false,
-    'enhanced-mode': 'fake-ip',
-    'fake-ip-range': '198.18.0.0/15',
-    'fake-ip-filter': [
-      '*.lan',
-      '*.local',
-      'dns.msftncsi.com',
-      'www.msftncsi.com',
-      'www.msftconnecttest.com',
-      'connectivitycheck.gstatic.com',
-      'connectivitycheck.android.com',
-      'connectivitycheck.platform.hicloud.com',
-      'time.*.com',
-      'time.*.gov',
-      'time.*.edu.cn',
-      'time.*.apple.com',
-      'time-ios.apple.com',
-      'time1.cloud.tencent.com',
-      'ntp.*.com',
-      'ntp.aliyun.com',
-      'pool.ntp.org',
-      '*.ntp.org',
-      '+.msftconnecttest.com',
-      '+.msftncsi.com',
-      '+.srv.nintendo.net',
-      '+.stun.playstation.net',
-      '+.xboxlive.com',
-      '+.ipv6.microsoft.com',
-      'rule-set:fakeip_filter',
-    ],
-
-    'default-nameserver': [
-      '223.5.5.5',
-      '1.12.12.12',
-    ],
-
-    'proxy-server-nameserver': [
-      '223.5.5.5',
-      '1.12.12.12',
-      ...chinaDNSPlain,
-    ],
-
-    nameserver: [
-      ...foreignDNS,
-    ],
-
-    'nameserver-policy': Object.fromEntries([
-      ['rule-set:private', chinaDNS],
-      ['rule-set:cn', chinaDNS],
-      ['rule-set:cn_additional', chinaDNS],
-      ['rule-set:apple_cn', chinaDNS],
-      ['rule-set:cloudflare_cn', chinaDNS],
-      ['rule-set:games_cn', chinaDNS],
-      ['rule-set:nvidia_cn', chinaDNS],
-      ['rule-set:gfw', foreignDNS],
-    ]),
-
-    'direct-nameserver': [
-      '223.5.5.5',
-      '119.29.29.29',
-    ],
-    'direct-nameserver-follow-policy': true,
-  };
+  });
 
   config.proxies.push(
-    {
-      name: '🇨🇳 直连 | IPv4优先',
-      type: 'direct',
-      'ip-version': 'ipv4-prefer',
-    },
-    {
-      name: '🇨🇳 直连 | IPv6优先',
-      type: 'direct',
-      'ip-version': 'ipv6-prefer',
-    },
-    {
-      name: '🇨🇳 直连 | 双栈',
-      type: 'direct',
-    }
+    { name: '🇨🇳 直连 | IPv4优先', type: 'direct', 'ip-version': 'ipv4-prefer' },
+    { name: '🇨🇳 直连 | IPv6优先', type: 'direct', 'ip-version': 'ipv6-prefer' },
+    { name: '🇨🇳 直连 | 双栈', type: 'direct' }
   );
 
-  config['proxy-groups'] = [globalGroup, ...functionalGroupsSorted, ...generatedRegionGroups];
-  config['rule-providers'] = finalRuleProviders;
-  config['mode'] = 'rule';
-  config['mixed-port'] = 7890;
-  config['allow-lan'] = true;
-  config['ipv6'] = true;
-  config['bind-address'] = '*';
-  config['unified-delay'] = true;
-  config['tcp-concurrent'] = true;
-  config['keep-alive-idle'] = 30;
-  config['keep-alive-interval'] = 15;
-  config['find-process-mode'] = 'strict';
-  config['geodata-mode'] = false;
-  config['external-controller'] = '127.0.0.1:9090';
-  config['external-ui'] = 'ui';
-  config['external-ui-url'] = 'https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip';
-  
-  config['profile'] = {
-    'store-selected': true,
-    'store-fake-ip': true,
-  };
-
-  config['experimental'] = {
-    'quic-go-disable-gso': true,
-    'quic-go-disable-ecn': true,
-    'dialer-ip4p-convert': false,
-  };
-
-  config['hosts'] = {
-    'dns.alidns.com': ['223.5.5.5', '223.6.6.6', '2400:3200::1', '2400:3200:baba::1'],
-    'doh.pub': ['1.12.12.12', '120.53.53.53'],
-    'dns.cloudflare.com': ['1.1.1.1', '1.0.0.1'],
-    'dns.google': ['8.8.8.8', '8.8.4.4', '2001:4860:4860::8888', '2001:4860:4860::8844'],
-    'cn.bing.com': 'global.bing.com',
-  };
-
-  config['ntp'] = {
-    enable: true,
-    'write-to-system': false,
-    server: 'ntp.aliyun.com',
-    port: 123,
-    interval: 30,
-    'dialer-proxy': 'DIRECT',
-  };
-
   if (tunEnable) {
-    config['tun'] = {
+    config.tun = {
       enable: true,
       stack: 'mixed',
       'auto-route': true,
@@ -895,10 +776,10 @@ function main(config) {
       'udp-timeout': 300,
     };
   } else {
-    delete config['tun'];
+    delete config.tun;
   }
-  
-  config['rules'] = [
+
+  config.rules = [
     ...finalRules,
     'RULE-SET,cn_additional,直连',
     'RULE-SET,cn,直连',
@@ -909,7 +790,6 @@ function main(config) {
     'DOMAIN-SUFFIX,local,直连',
     'DOMAIN-SUFFIX,lan,直连',
     'GEOIP,LAN,直连,no-resolve',
-
     'MATCH,默认代理',
   ];
 
