@@ -36,7 +36,7 @@ jobs:
       - name: 更新 GitHub Release 附件与说明
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.event.release.tag_name }} # 定位到当前触发的 Release
+          tag_name: ${{ github.event.release.tag_name }}
           name: ${{ github.ref_name }}
           body: |
             ${{ github.event.release.body }}
