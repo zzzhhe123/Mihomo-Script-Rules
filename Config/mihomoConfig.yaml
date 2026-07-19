@@ -1441,7 +1441,7 @@ rule-providers:
     path-in-bundle: "geo/geosite/apple@cn.mrs"
   adblockmihomolite:
     type: http
-    interval: 43200
+    interval: 86400
     behavior: domain
     format: mrs
     url: "https://fastly.jsdelivr.net/gh/217heidai/adblockfilters@main/rules/adblockmihomolite.mrs"
