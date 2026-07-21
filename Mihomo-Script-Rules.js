@@ -18,24 +18,24 @@ const ruleOptionsEnable = {
 };
 
 const regionDefinitionsEnable = {
-  香港: true,
-  日本: true,
-  美国: true,
-  新加坡: true,
-  台湾: true,
-  韩国: true,
-  英国: true,
-  德国: true,
-  法国: true,
-  加拿大: true,
-  澳大利亚: true,
-  印度: true,
-  土耳其: true,
-  巴西: true,
-  阿根廷: true,
-  俄罗斯: true,
-  低倍率节点: true,
-  高倍率节点: true,
+  HK: true,
+  JP: true,
+  US: true,
+  SG: true,
+  TW: true,
+  KR: true,
+  UK: true,
+  DE: true,
+  FR: true,
+  CA: true,
+  AU: true,
+  IN: true,
+  TR: true,
+  BR: true,
+  AR: true,
+  RU: true,
+  'Low-Rate': true,
+  'High-Rate': true,
 };
 
 const excludeFilterEnable = true;
@@ -46,127 +46,127 @@ const tunEnable = false;
 const quicEnable = true;
 
 const quicRules = [
-  'AND,((NETWORK,udp),(DST-PORT,443),(OR,((RULE-SET,cn_additional),(RULE-SET,cn_ip,no-resolve)))),直连',
-  'AND,((NETWORK,udp),(DST-PORT,443)),QUIC处理',
+  'AND,((NETWORK,udp),(DST-PORT,443),(OR,((RULE-SET,cn_additional),(RULE-SET,cn_ip,no-resolve)))),Direct',
+  'AND,((NETWORK,udp),(DST-PORT,443)),QUIC',
 ];
 
 const rules = [
   'DOMAIN-SUFFIX,mcdn.bilivideo.com,REJECT',
   'DOMAIN-SUFFIX,mcdn.bilivideo.cn,REJECT',
   'DOMAIN-KEYWORD,mcdn.bili,REJECT',
-  'RULE-SET,private,直连',
-  'RULE-SET,private_ip,直连,no-resolve',
-  'DOMAIN-SUFFIX,ibytedtos.com,直连',
-  'DOMAIN-SUFFIX,bytecdn.cn,直连',
-  'DOMAIN-SUFFIX,snssdk.com,直连',
-  'DOMAIN-SUFFIX,iesdouyin.com,直连',
-  'DOMAIN-SUFFIX,pstatp.com,直连',
-  'DOMAIN-KEYWORD,douyin,直连',
-  'RULE-SET,DownloadApps,直连',
-  'RULE-SET,games_cn,直连',
-  'RULE-SET,nvidia_cn,直连',
-  'RULE-SET,cloudflare_cn,直连',
-  'RULE-SET,apple_cn,直连',
-  'DOMAIN,fsend.cn,直连',
-  'DOMAIN-SUFFIX,jlc-jdgf.com,直连',
+  'RULE-SET,private,Direct',
+  'RULE-SET,private_ip,Direct,no-resolve',
+  'DOMAIN-SUFFIX,ibytedtos.com,Direct',
+  'DOMAIN-SUFFIX,bytecdn.cn,Direct',
+  'DOMAIN-SUFFIX,snssdk.com,Direct',
+  'DOMAIN-SUFFIX,iesdouyin.com,Direct',
+  'DOMAIN-SUFFIX,pstatp.com,Direct',
+  'DOMAIN-KEYWORD,douyin,Direct',
+  'RULE-SET,DownloadApps,Direct',
+  'RULE-SET,games_cn,Direct',
+  'RULE-SET,nvidia_cn,Direct',
+  'RULE-SET,cloudflare_cn,Direct',
+  'RULE-SET,apple_cn,Direct',
+  'DOMAIN,fsend.cn,Direct',
+  'DOMAIN-SUFFIX,jlc-jdgf.com,Direct',
 ];
 
-const NODE_RATE_LOW = '低倍率节点';
-const NODE_RATE_HIGH = '高倍率节点';
+const NODE_RATE_LOW = 'Low-Rate';
+const NODE_RATE_HIGH = 'High-Rate';
 
 const regionDefinitions = [
   {
-    name: '香港',
+    name: 'HK',
     regex: /🇭🇰|香港|港(?!口)|\bHK\b|hong\s*kong/i,
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Hong_Kong.png',
     flag: '🇭🇰',
   },
   {
-    name: '日本',
+    name: 'JP',
     regex: /🇯🇵|日本|东京|大阪|埼玉|\bJP\b|japan/i,
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Japan.png',
     flag: '🇯🇵',
   },
   {
-    name: '美国',
+    name: 'US',
     regex: /🇺🇸|美国|美区|洛杉矶|圣何塞|西雅图|纽约|芝加哥|达拉斯|\bUS\b|america|united\s*states/i,
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/United_States.png',
     flag: '🇺🇸',
   },
   {
-    name: '新加坡',
+    name: 'SG',
     regex: /🇸🇬|新加坡|狮城|\bSG\b|singapore/i,
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Singapore.png',
     flag: '🇸🇬',
   },
   {
-    name: '台湾',
+    name: 'TW',
     regex: /🇹🇼|台湾|台北|高雄|\bTW\b|taiwan/i,
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Taiwan.png',
     flag: '🇹🇼',
   },
   {
-    name: '韩国',
+    name: 'KR',
     regex: /🇰🇷|韩国|首尔|春川|\bKR\b|korea/i,
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Korea.png',
     flag: '🇰🇷',
   },
   {
-    name: '英国',
+    name: 'UK',
     regex: /🇬🇧|英国|伦敦|\bUK\b|\bGB\b|britain|united\s*kingdom/i,
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/United_Kingdom.png',
     flag: '🇬🇧',
   },
   {
-    name: '德国',
+    name: 'DE',
     regex: /🇩🇪|德国|法兰克福|柏林|\bDE\b|germany/i,
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Germany.png',
     flag: '🇩🇪',
   },
   {
-    name: '法国',
+    name: 'FR',
     regex: /🇫🇷|法国|巴黎|\bFR\b|france/i,
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/France.png',
     flag: '🇫🇷',
   },
   {
-    name: '加拿大',
+    name: 'CA',
     regex: /🇨🇦|加拿大|多伦多|温哥华|蒙特利尔|\bCA\b|canada/i,
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Canada.png',
     flag: '🇨🇦',
   },
   {
-    name: '澳大利亚',
+    name: 'AU',
     regex: /🇦🇺|澳大利亚|澳洲|悉尼|墨尔本|\bAU\b|australia/i,
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Australia.png',
     flag: '🇦🇺',
   },
   {
-    name: '印度',
+    name: 'IN',
     regex: /🇮🇳|印度|孟买|金奈|\bIN\b|india/i,
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/India.png',
     flag: '🇮🇳',
   },
   {
-    name: '土耳其',
+    name: 'TR',
     regex: /🇹🇷|土耳其|伊斯坦布尔|\bTR\b|turkey/i,
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Turkey.png',
     flag: '🇹🇷',
   },
   {
-    name: '巴西',
+    name: 'BR',
     regex: /🇧🇷|巴西|圣保罗|\bBR\b|brazil/i,
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Brazil.png',
     flag: '🇧🇷',
   },
   {
-    name: '阿根廷',
+    name: 'AR',
     regex: /🇦🇷|阿根廷|布宜诺斯艾利斯|\bAR\b|argentina/i,
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Argentina.png',
     flag: '🇦🇷',
   },
   {
-    name: '俄罗斯',
+    name: 'RU',
     regex: /🇷🇺|俄罗斯|莫斯科|圣彼得堡|\bRU\b|russia/i,
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Russia.png',
     flag: '🇷🇺',
@@ -289,7 +289,7 @@ const extractMultiplier = (name, isHigh) => {
     const match = name.match(/(?:^|[^\d])(0\.[0-5])\s*(?:倍|倍率|[xX×])?/u);
     if (match !== null) return `${match[1]}x`;
     const lowMatch = name.match(/省流|下载/);
-    return lowMatch !== null ? lowMatch[0] : '低倍';
+    return lowMatch !== null ? lowMatch[0] : 'Low';
   }
   const match = name.match(/(\d+(?:\.\d+)?)\s*[xX×倍]/u) || name.match(/[×*xX]\s*(\d+(?:\.\d+)?)/u);
   return match !== null ? `${match[1]}x` : '';
@@ -421,7 +421,7 @@ const serviceConfigs = [
   },
   {
     key: 'adblock',
-    name: '广告拦截',
+    name: 'AdBlock',
     proxyMode: 'reject',
     providers: {
       adblockmihomolite: {
@@ -432,13 +432,13 @@ const serviceConfigs = [
       },
     },
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Advertising.png',
-    rules: ['RULE-SET,adblockmihomolite,广告拦截'],
+    rules: ['RULE-SET,adblockmihomolite,AdBlock'],
   },
 ];
 
 const createRegionGroup = (name, icon, proxies) => {
-  const autoTestName = `${name}-自动选择`;
-  const loadBalanceName = `${name}-负载均衡`;
+  const autoTestName = `${name}-Auto`;
+  const loadBalanceName = `${name}-Balance`;
   return [
     { ...selectBaseOption, name, icon, proxies: [autoTestName, loadBalanceName, ...proxies] },
     { ...urlTestBaseOption, name: autoTestName, proxies },
@@ -589,7 +589,7 @@ function main(config) {
 
     if (otherProxies.length > 0) {
       const otherGroups = createRegionGroup(
-        '其他节点',
+        'Others',
         'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/World_Map.png',
         otherProxies
       );
@@ -604,7 +604,7 @@ function main(config) {
 
     for (let i = 0; i < generatedRegionGroups.length; i++) {
       const g = generatedRegionGroups[i];
-      if (g.name.indexOf('倍率') === -1) {
+      if (g.name.indexOf('-Rate') === -1) {
         if (g.type === 'select') groupNamesOfSelect.push(g.name);
         else if (g.type === 'url-test') autoTestProxies.push(g.name);
         else if (g.type === 'load-balance') loadBalanceProxies.push(g.name);
@@ -612,31 +612,31 @@ function main(config) {
     }
 
     const proxyModes = {
-      default: ['默认代理', '直连', '自动选择', '负载均衡', ...groupNamesOfSelect],
+      default: ['Default', 'Direct', 'Auto', 'Balance', ...groupNamesOfSelect],
       reject: ['REJECT', 'DIRECT'],
     };
 
     const functionalGroups = [
       {
         ...selectBaseOption,
-        name: '默认代理',
-        proxies: ['自动选择', '直连', '负载均衡', ...groupNamesOfSelect],
+        name: 'Default',
+        proxies: ['Auto', 'Direct', 'Balance', ...groupNamesOfSelect],
         icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Proxy.png',
       },
       {
         ...urlTestBaseOption,
-        name: '自动选择',
-        proxies: autoTestProxies.length > 0 ? autoTestProxies : ['直连'],
+        name: 'Auto',
+        proxies: autoTestProxies.length > 0 ? autoTestProxies : ['Direct'],
       },
       {
         ...loadBalanceBaseOption,
-        name: '负载均衡',
-        proxies: loadBalanceProxies.length > 0 ? loadBalanceProxies : ['直连'],
+        name: 'Balance',
+        proxies: loadBalanceProxies.length > 0 ? loadBalanceProxies : ['Direct'],
       },
       {
         ...selectBaseOption,
-        name: 'QUIC处理',
-        proxies: ['默认代理', 'REJECT'],
+        name: 'QUIC',
+        proxies: ['Default', 'REJECT'],
         icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Lock.png',
       },
     ];
@@ -677,19 +677,19 @@ function main(config) {
 
     functionalGroups.push({
       ...selectBaseOption,
-      name: '直连',
-      proxies: ['🇨🇳 直连 | IPv4优先', '🇨🇳 直连 | IPv6优先', '🇨🇳 直连 | 双栈'],
+      name: 'Direct',
+      proxies: ['Direct | IPv4 Preferred', 'Direct | IPv6 Preferred', 'Direct | Dual Stack'],
       url: 'https://connectivitycheck.platform.hicloud.com/generate_204',
       icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/China_Map.png',
     });
 
     const functionalGroupDisplayOrder = [
-      '默认代理',
-      '直连',
-      '自动选择',
-      '负载均衡',
-      'QUIC处理',
-      '广告拦截',
+      'Default',
+      'Direct',
+      'Auto',
+      'Balance',
+      'QUIC',
+      'AdBlock',
       'Cloudflare',
       'FCM',
       'AI',
@@ -739,8 +739,8 @@ function main(config) {
       icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Global.png',
     };
 
-    const chinaDNS = ['https://dns.alidns.com/dns-query#直连', 'https://doh.pub/dns-query#直连'];
-    const foreignDNS = ['https://dns.google/dns-query#默认代理', 'https://dns.cloudflare.com/dns-query#默认代理'];
+    const chinaDNS = ['https://dns.alidns.com/dns-query#Direct', 'https://doh.pub/dns-query#Direct'];
+    const foreignDNS = ['https://dns.google/dns-query#Default', 'https://dns.cloudflare.com/dns-query#Default'];
 
     if (config.hasOwnProperty('experimental')) {
       delete config.experimental;
@@ -853,9 +853,9 @@ function main(config) {
     });
 
     config.proxies.push(
-      { name: '🇨🇳 直连 | IPv4优先', type: 'direct', 'ip-version': 'ipv4-prefer' },
-      { name: '🇨🇳 直连 | IPv6优先', type: 'direct', 'ip-version': 'ipv6-prefer' },
-      { name: '🇨🇳 直连 | 双栈', type: 'direct' }
+      { name: 'Direct | IPv4 Preferred', type: 'direct', 'ip-version': 'ipv4-prefer' },
+      { name: 'Direct | IPv6 Preferred', type: 'direct', 'ip-version': 'ipv6-prefer' },
+      { name: 'Direct | Dual Stack', type: 'direct' }
     );
 
     if (tunEnable) {
@@ -876,14 +876,14 @@ function main(config) {
 
     config.rules = [
       ...finalRules,
-      'RULE-SET,cn_additional,直连',
-      'RULE-SET,cn,直连',
-      'RULE-SET,cn_ip,直连,no-resolve',
-      'RULE-SET,gfw,默认代理',
-      'DOMAIN-SUFFIX,cn,直连',
-      'DOMAIN-SUFFIX,local,直连',
-      'DOMAIN-SUFFIX,lan,直连',
-      'MATCH,默认代理',
+      'RULE-SET,cn_additional,Direct',
+      'RULE-SET,cn,Direct',
+      'RULE-SET,cn_ip,Direct,no-resolve',
+      'RULE-SET,gfw,Default',
+      'DOMAIN-SUFFIX,cn,Direct',
+      'DOMAIN-SUFFIX,local,Direct',
+      'DOMAIN-SUFFIX,lan,Direct',
+      'MATCH,Default',
     ];
 
     return config;
