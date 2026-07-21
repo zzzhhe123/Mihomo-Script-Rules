@@ -447,24 +447,26 @@ const createRegionGroup = (name, icon, proxies) => {
 };
 
 function main(config) {
-  if (typeof config !== 'object' || config === null) {
+  if (!config || typeof config !== 'object') {
     return { proxies: [], 'proxy-groups': [], rules: [] };
+  }
+  if (!Array.isArray(config.proxies)) {
+    config.proxies = [];
   }
 
   try {
-    if (config.hasOwnProperty('global-client-fingerprint')) {
+    if ('global-client-fingerprint' in config) {
       delete config['global-client-fingerprint'];
     }
-    if (config.hasOwnProperty('sub-rules')) {
+    if ('sub-rules' in config) {
       delete config['sub-rules'];
     }
 
-    const rawProxies = Array.isArray(config.proxies) ? config.proxies : [];
-    
+    const rawProxies = config.proxies;
     let hasValidProxy = false;
-    for (let i = 0; i < rawProxies.length; i++) {
-      const p = rawProxies[i];
-      if (typeof p === 'object' && p !== null && typeof p.type === 'string') {
+
+    for (const p of rawProxies) {
+      if (p && typeof p === 'object' && typeof p.type === 'string') {
         const pType = p.type.toLowerCase();
         if (pType !== 'direct' && pType !== 'reject') {
           hasValidProxy = true;
@@ -477,20 +479,13 @@ function main(config) {
       throw new Error('未发现有效代理节点数据');
     }
 
-    const enabledDefinitions = [];
-    for (let i = 0; i < regionDefinitions.length; i++) {
-      const def = regionDefinitions[i];
-      if (regionDefinitionsEnable[def.name]) {
-        enabledDefinitions.push(def);
-      }
-    }
+    const enabledDefinitions = regionDefinitions.filter((def) => regionDefinitionsEnable[def.name]);
 
     const regionGroups = {};
     const regionFlags = {};
-    for (let i = 0; i < enabledDefinitions.length; i++) {
-      const r = enabledDefinitions[i];
+    for (const r of enabledDefinitions) {
       regionGroups[r.name] = { name: r.name, icon: r.icon, proxies: [] };
-      if (r.hasOwnProperty('flag')) {
+      if ('flag' in r) {
         regionFlags[r.name] = r.flag;
       }
     }
@@ -500,32 +495,25 @@ function main(config) {
     const regionCounters = new Map();
     const fingerprintSupported = new Set(['vmess', 'vless', 'trojan', 'anytls']);
 
-    for (let i = 0; i < rawProxies.length; i++) {
-      const proxy = rawProxies[i];
-      
-      if (typeof proxy !== 'object' || proxy === null || Array.isArray(proxy)) continue;
+    for (const proxy of rawProxies) {
+      if (!proxy || typeof proxy !== 'object' || Array.isArray(proxy)) continue;
 
       const originalName = proxy.name;
       if (typeof originalName !== 'string' || originalName.trim() === '') continue;
 
       if (excludeFilterEnable && excludeFilter.test(originalName)) continue;
 
-      const proxyType = (proxy.hasOwnProperty('type') && typeof proxy.type === 'string') 
-        ? proxy.type.toLowerCase() 
-        : 'unknown';
+      const proxyType = typeof proxy.type === 'string' ? proxy.type.toLowerCase() : 'unknown';
 
       if (fingerprintSupported.has(proxyType)) {
-        if (!proxy.hasOwnProperty('client-fingerprint') || proxy['client-fingerprint'] === null) {
-          proxy['client-fingerprint'] = 'chrome';
-        }
+        proxy['client-fingerprint'] ??= 'chrome';
       }
 
       let matchedNormalRegionName = '';
       let matchedNormalRegion = false;
       const matchedGroups = [];
 
-      for (let j = 0; j < enabledDefinitions.length; j++) {
-        const region = enabledDefinitions[j];
+      for (const region of enabledDefinitions) {
         if (region.regex.test(originalName)) {
           matchedGroups.push(region.name);
           if (region.name !== NODE_RATE_LOW && region.name !== NODE_RATE_HIGH) {
@@ -537,16 +525,14 @@ function main(config) {
         }
       }
 
-      const isLow = matchedGroups.indexOf(NODE_RATE_LOW) !== -1;
-      const isHigh = matchedGroups.indexOf(NODE_RATE_HIGH) !== -1;
+      const isLow = matchedGroups.includes(NODE_RATE_LOW);
+      const isHigh = matchedGroups.includes(NODE_RATE_HIGH);
       let newName = originalName;
 
       if (matchedNormalRegionName !== '') {
-        const flag = regionFlags.hasOwnProperty(matchedNormalRegionName) 
-          ? regionFlags[matchedNormalRegionName] 
-          : '🏳️';
+        const flag = regionFlags[matchedNormalRegionName] ?? '🏳️';
         const counterKey = (isLow || isHigh) ? `${matchedNormalRegionName}_multi` : matchedNormalRegionName;
-        const count = (regionCounters.has(counterKey) ? regionCounters.get(counterKey) : 0) + 1;
+        const count = (regionCounters.get(counterKey) ?? 0) + 1;
 
         regionCounters.set(counterKey, count);
         const serial = String(count).padStart(2, '0');
@@ -562,10 +548,9 @@ function main(config) {
       proxy.name = newName;
       processedProxies.push(proxy);
 
-      for (let j = 0; j < matchedGroups.length; j++) {
-        const groupName = matchedGroups[j];
+      for (const groupName of matchedGroups) {
         if ((isLow || isHigh) && groupName !== NODE_RATE_LOW && groupName !== NODE_RATE_HIGH) continue;
-        if (regionGroups.hasOwnProperty(groupName)) {
+        if (groupName in regionGroups) {
           regionGroups[groupName].proxies.push(newName);
         }
       }
@@ -576,35 +561,29 @@ function main(config) {
     config.proxies = processedProxies;
 
     const generatedRegionGroups = [];
-    for (let i = 0; i < enabledDefinitions.length; i++) {
-      const def = enabledDefinitions[i];
+    for (const def of enabledDefinitions) {
       const group = regionGroups[def.name];
-      if (group !== undefined && Array.isArray(group.proxies) && group.proxies.length > 0) {
-        const newGroups = createRegionGroup(group.name, group.icon, group.proxies);
-        for (let j = 0; j < newGroups.length; j++) {
-          generatedRegionGroups.push(newGroups[j]);
-        }
+      if (group && Array.isArray(group.proxies) && group.proxies.length > 0) {
+        generatedRegionGroups.push(...createRegionGroup(group.name, group.icon, group.proxies));
       }
     }
 
     if (otherProxies.length > 0) {
-      const otherGroups = createRegionGroup(
-        'Others',
-        'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/World_Map.png',
-        otherProxies
+      generatedRegionGroups.push(
+        ...createRegionGroup(
+          'Others',
+          'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/World_Map.png',
+          otherProxies
+        )
       );
-      for (let i = 0; i < otherGroups.length; i++) {
-        generatedRegionGroups.push(otherGroups[i]);
-      }
     }
 
     const groupNamesOfSelect = [];
     const autoTestProxies = [];
     const loadBalanceProxies = [];
 
-    for (let i = 0; i < generatedRegionGroups.length; i++) {
-      const g = generatedRegionGroups[i];
-      if (g.name.indexOf('-Rate') === -1) {
+    for (const g of generatedRegionGroups) {
+      if (!g.name.includes('-Rate')) {
         if (g.type === 'select') groupNamesOfSelect.push(g.name);
         else if (g.type === 'url-test') autoTestProxies.push(g.name);
         else if (g.type === 'load-balance') loadBalanceProxies.push(g.name);
@@ -641,37 +620,26 @@ function main(config) {
       },
     ];
 
-    const finalRules = quicEnable ? quicRules.concat(rules) : [...rules];
+    const finalRules = quicEnable ? [...quicRules, ...rules] : [...rules];
     const finalRuleProviders = { ...baseRuleProviders };
 
-    const orderedServiceConfigs = [];
-    for (let i = 0; i < serviceConfigs.length; i++) {
-      if (serviceConfigs[i].key === 'adblock') orderedServiceConfigs.push(serviceConfigs[i]);
-    }
-    for (let i = 0; i < serviceConfigs.length; i++) {
-      if (serviceConfigs[i].key !== 'adblock') orderedServiceConfigs.push(serviceConfigs[i]);
-    }
+    const orderedServiceConfigs = [
+      ...serviceConfigs.filter((s) => s.key === 'adblock'),
+      ...serviceConfigs.filter((s) => s.key !== 'adblock'),
+    ];
 
-    for (let i = 0; i < orderedServiceConfigs.length; i++) {
-      const svc = orderedServiceConfigs[i];
+    for (const svc of orderedServiceConfigs) {
       if (!ruleOptionsEnable[svc.key]) continue;
-      
-      for (let j = 0; j < svc.rules.length; j++) {
-        finalRules.push(svc.rules[j]);
-      }
-      
-      const providerKeys = Object.keys(svc.providers);
-      for (let j = 0; j < providerKeys.length; j++) {
-        const pKey = providerKeys[j];
-        finalRuleProviders[pKey] = svc.providers[pKey];
-      }
 
-      const currentProxyMode = svc.hasOwnProperty('proxyMode') ? svc.proxyMode : 'default';
+      finalRules.push(...svc.rules);
+      Object.assign(finalRuleProviders, svc.providers);
+
+      const currentProxyMode = 'proxyMode' in svc ? svc.proxyMode : 'default';
       functionalGroups.push({
         ...selectBaseOption,
         name: svc.name,
         icon: svc.icon,
-        proxies: proxyModes.hasOwnProperty(currentProxyMode) ? proxyModes[currentProxyMode] : proxyModes['default'],
+        proxies: currentProxyMode in proxyModes ? proxyModes[currentProxyMode] : proxyModes['default'],
       });
     }
 
@@ -708,9 +676,7 @@ function main(config) {
     ];
 
     const orderMap = new Map();
-    for (let i = 0; i < functionalGroupDisplayOrder.length; i++) {
-      orderMap.set(functionalGroupDisplayOrder[i], i);
-    }
+    functionalGroupDisplayOrder.forEach((name, index) => orderMap.set(name, index));
 
     const functionalGroupsSorted = functionalGroups
       .map((group, index) => ({ group, index }))
@@ -722,15 +688,10 @@ function main(config) {
       })
       .map((item) => item.group);
 
-    const globalGroupProxies = [];
-    for (let i = 0; i < functionalGroupsSorted.length; i++) {
-      globalGroupProxies.push(functionalGroupsSorted[i].name);
-    }
-    for (let i = 0; i < generatedRegionGroups.length; i++) {
-      if (generatedRegionGroups[i].type === 'select') {
-        globalGroupProxies.push(generatedRegionGroups[i].name);
-      }
-    }
+    const globalGroupProxies = [
+      ...functionalGroupsSorted.map((g) => g.name),
+      ...generatedRegionGroups.filter((g) => g.type === 'select').map((g) => g.name),
+    ];
 
     const globalGroup = {
       ...selectBaseOption,
@@ -742,7 +703,7 @@ function main(config) {
     const chinaDNS = ['https://dns.alidns.com/dns-query#Direct', 'https://doh.pub/dns-query#Direct'];
     const foreignDNS = ['https://dns.google/dns-query#Default', 'https://dns.cloudflare.com/dns-query#Default'];
 
-    if (config.hasOwnProperty('experimental')) {
+    if ('experimental' in config) {
       delete config.experimental;
     }
 
@@ -870,7 +831,7 @@ function main(config) {
         'dns-hijack': ['any:53', 'tcp://any:53'],
         'udp-timeout': 300,
       };
-    } else if (config.hasOwnProperty('tun')) {
+    } else if ('tun' in config) {
       delete config.tun;
     }
 
@@ -888,8 +849,6 @@ function main(config) {
 
     return config;
   } catch (error) {
-    return config && typeof config === 'object' && Array.isArray(config.proxies) 
-      ? config 
-      : { proxies: [], 'proxy-groups': [], rules: [] };
+    return { proxies: [], 'proxy-groups': [], rules: [] };
   }
 }
