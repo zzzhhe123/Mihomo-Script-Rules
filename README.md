@@ -42,8 +42,8 @@
 
 本项目主要用于接管机场的原始订阅配置，通过自动执行**节点重命名、无效节点过滤、精细化策略组分流、智能 DNS 配置**，彻底解决原始订阅杂乱无章的问题，提供开箱即用的网络体验。
 
-> **核心工程优势**：
-> 本脚本经过深度架构重构，全面兼容 **QuickJS** 引擎。采用**防御性编程**，能完美隔离机场下发的脏数据（如空节点、残缺字段），杜绝配置挂载过程中的引擎崩溃与客户端假死，保障极致的稳定性。
+> ​核心工程优势：
+> 本脚本基于 ES2020 现代语法深度重构，完美兼容 QuickJS 引擎。采用防御性编程与无损合并（Merge）机制，能安全隔离机场下发的脏数据（如空节点、缺失协议），并在保留用户原有自定义规则的前提下进行配置挂载，彻底杜绝引擎崩溃与客户端假死，保障高频执行下的绝对稳定
 
 > **两种模式**：
 > - **脚本**（`Mihomo-Script-Rules.js`）：根据节点名动态生成地区策略组，自动化程度最高，推荐大多数用户使用。
@@ -217,7 +217,13 @@
 - [217heidai/adblockfilters](https://github.com/217heidai/adblockfilters)（广告拦截规则）
 - [AIsouler/MyClash](https://github.com/AIsouler/MyClash)（下载类应用规则）
 
-### 5.10 其他
+### 5.10 极致的防御性架构与无损接管
+
+- ​**防崩溃兜底**：全面弃用陈旧 API，利用现代空值合并 (??) 与可选链 (?.) 安全寻址。当遇到极端异常配置时，脚本会触发兜底机制返回纯净的最小可用配置，确保网络不断连。
+
+- **​无损配置合并**：摒弃粗暴的顶层字段覆盖，采用对象深拷贝与扩展运算符 (...)，在注入策略组的同时，完美保留用户在客户端内自定义的直连规则、前置代理等个性化配置。
+
+### 5.11 其他
 
 - **Sniffer 域名嗅探**：HTTP/TLS/QUIC 自动嗅探真实域名
 
@@ -316,7 +322,7 @@ https://fastly.jsdelivr.net/gh/zzzhhe123/Mihomo-Script-Rules@main/Config/mihomoC
 | 客户端 | 兼容性 | 备注  |
 | --- | --- | --- |
 | [Bettbox](https://github.com/appshubcc/Bettbox) | 完美 | **强烈推荐**，原生支持 JS 脚本，完美契合本脚本的 QuickJS 防御性架构 |
-| [FlClash](https://github.com/chen08209/FlClash) | 完美 | **强烈推荐**，原生支持 JS 脚本预处理，执行效率极高 |
+| [FlClash](https://github.com/chen08209/FlClash) | 完美 | 推荐，原生支持 JS 脚本预处理，执行效率极高 |
 | [Clash Verge Rev](https://github.com/clash-verge-rev/clash-verge-rev) | 兼容 | 需在配置编辑中手动设置预处理脚本 |
 | [Clash Nyanpasu](https://github.com/libnyanpasu/clash-nyanpasu) | 兼容 | 同上  |
 | [Clash Verge](https://github.com/clash-verge-rev/clash-verge-rev) | 旧版 | 旧版可能不支持，建议升级到 Verge Rev |
@@ -361,24 +367,24 @@ const ruleOptionsEnable = {
 
 ```javascript
 const regionDefinitionsEnable = {
-  香港: true,
-  日本: true,
-  美国: true,
-  新加坡: true,
-  台湾: true,
-  韩国: true,
-  英国: true,
-  德国: true,
-  法国: true,
-  加拿大: true,
-  澳大利亚: true,
-  印度: true,
-  土耳其: true,
-  巴西: true,
-  阿根廷: true,
-  俄罗斯: true,
-  低倍率节点: true,   // 自动识别 0.1x ~ 0.5x 的低倍率节点
-  高倍率节点: true,   // 自动识别 2x+ 的高倍率节点
+  HK: true,           // 香港
+  JP: true,           // 日本
+  US: true,           // 美国
+  SG: true,           // 新加坡
+  TW: true,           // 台湾
+  KR: true,           // 韩国
+  UK: true,           // 英国
+  DE: true,           // 德国
+  FR: true,           // 法国
+  CA: true,           // 加拿大
+  AU: true,           // 澳大利亚
+  IN: true,           // 印度
+  TR: true,           // 土耳其
+  BR: true,           // 巴西
+  AR: true,           // 阿根廷
+  RU: true,           // 俄罗斯
+  'Low-Rate': true,   // 自动识别 0.1x ~ 0.5x 的低倍率节点
+  'High-Rate': true,  // 自动识别 2x+ 的高倍率节点
 };
 ```
 
