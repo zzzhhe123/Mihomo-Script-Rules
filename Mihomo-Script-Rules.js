@@ -506,7 +506,9 @@ function main(config) {
       const proxyType = typeof proxy.type === 'string' ? proxy.type.toLowerCase() : 'unknown';
 
       if (fingerprintSupported.has(proxyType)) {
-        proxy['client-fingerprint'] ??= 'chrome';
+        if (proxy['client-fingerprint'] == null) {
+          proxy['client-fingerprint'] = 'chrome';
+        }
       }
 
       let matchedNormalRegionName = '';
@@ -530,9 +532,9 @@ function main(config) {
       let newName = originalName;
 
       if (matchedNormalRegionName !== '') {
-        const flag = regionFlags[matchedNormalRegionName] ?? '🏳️';
+        const flag = regionFlags[matchedNormalRegionName] || '🏳️';
         const counterKey = (isLow || isHigh) ? `${matchedNormalRegionName}_multi` : matchedNormalRegionName;
-        const count = (regionCounters.get(counterKey) ?? 0) + 1;
+        const count = (regionCounters.get(counterKey) || 0) + 1;
 
         regionCounters.set(counterKey, count);
         const serial = String(count).padStart(2, '0');
