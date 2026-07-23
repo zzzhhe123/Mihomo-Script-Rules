@@ -11,6 +11,10 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+    # --- 新增权限声明 ---
+    permissions:
+      issues: write
+    # ------------------
     steps:
       - name: Checkout
         uses: actions/checkout@v4
