@@ -302,9 +302,11 @@ const serviceConfigs = [
     providers: {
       openai: geositeMrs('openai', 'openai'),
       anthropic: geositeMrs('anthropic', 'anthropic'),
+      gemini: geositeMrs('gemini', 'gemini'),
     },
     icon: 'https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/ChatGPT.png',
-    rules: ['RULE-SET,openai,AI', 'RULE-SET,anthropic,AI'],
+    rules: ['RULE-SET,openai,AI', 'RULE-SET,anthropic,AI', 
+'RULE-SET,gemini,AI'],
   },
   {
     key: 'youtube',
