@@ -1434,7 +1434,7 @@ rule-providers:
     behavior: domain
     format: mrs
     url: "https://fastly.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/apple@cn.mrs"
-    path: "./ruleset/apple@cn.mrs"
+    path: ./ruleset/apple_cn.mrs
     path-in-bundle: "geo/geosite/apple@cn.mrs"
   adblockmihomolite:
     type: http
@@ -1443,7 +1443,7 @@ rule-providers:
     format: mrs
     url: "https://fastly.jsdelivr.net/gh/217heidai/adblockfilters@main/rules/adblockmihomolite.mrs"
     path: ./ruleset/adblockmihomolite.mrs
-    path-in-bundle: null
+    path-in-bundle: geo/geosite/ads.mrs
   openai:
     type: http
     interval: 86400
