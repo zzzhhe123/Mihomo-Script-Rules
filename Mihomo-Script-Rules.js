@@ -250,7 +250,7 @@ const baseRuleProviders = {
   },
   cn_ip: geoipMrs('cn', 'cn_ip'),
   cloudflare_cn: geositeMrs('cloudflare@cn', 'cloudflare_cn'),
-  apple_cn: geositeMrs('apple@cn', 'apple@cn'),
+  apple_cn: geositeMrs('apple@cn', 'apple_cn'),
 };
 
 const groupBaseOption = {
@@ -303,7 +303,6 @@ const serviceConfigs = [
     providers: {
       adblockmihomolite: {
         ...geositeMrs('ads', 'adblockmihomolite'),
-        'path-in-bundle': undefined,
         interval: 86400,
         url: 'https://fastly.jsdelivr.net/gh/217heidai/adblockfilters@main/rules/adblockmihomolite.mrs',
       },
@@ -446,6 +445,95 @@ const createRegionGroup = (name, icon, proxies) => {
   ];
 };
 
+/**
+ * 处理并分类所有代理节点：过滤、重命名、按地区/倍率分组
+ * @param {Array} rawProxies - 原始代理节点数组
+ * @param {Array} enabledDefinitions - 已启用的地区和倍率定义
+ * @returns {{ processedProxies: Array, otherProxies: Array, regionGroups: Object }}
+ */
+function processProxies(rawProxies, enabledDefinitions) {
+  const regionGroups = {};
+  const regionFlags = {};
+  for (const r of enabledDefinitions) {
+    regionGroups[r.name] = { name: r.name, icon: r.icon, proxies: [] };
+    if ('flag' in r) {
+      regionFlags[r.name] = r.flag;
+    }
+  }
+
+  const processedProxies = [];
+  const otherProxies = [];
+  const regionCounters = new Map();
+  const fingerprintSupported = new Set(['vmess', 'vless', 'trojan', 'anytls']);
+
+  for (const proxy of rawProxies) {
+    if (!proxy || typeof proxy !== 'object' || Array.isArray(proxy)) continue;
+
+    const originalName = proxy.name;
+    if (typeof originalName !== 'string' || originalName.trim() === '') continue;
+
+    if (excludeFilterEnable && excludeFilter.test(originalName)) continue;
+
+    const proxyType = typeof proxy.type === 'string' ? proxy.type.toLowerCase() : 'unknown';
+
+    if (fingerprintSupported.has(proxyType)) {
+      if (proxy['client-fingerprint'] == null) {
+        proxy['client-fingerprint'] = 'chrome';
+      }
+    }
+
+    let matchedNormalRegionName = '';
+    let matchedNormalRegion = false;
+    const matchedGroups = [];
+
+    for (const region of enabledDefinitions) {
+      if (region.regex.test(originalName)) {
+        matchedGroups.push(region.name);
+        if (region.name !== NODE_RATE_LOW && region.name !== NODE_RATE_HIGH) {
+          matchedNormalRegion = true;
+          if (matchedNormalRegionName === '') {
+            matchedNormalRegionName = region.name;
+          }
+        }
+      }
+    }
+
+    const isLow = matchedGroups.includes(NODE_RATE_LOW);
+    const isHigh = matchedGroups.includes(NODE_RATE_HIGH);
+    let newName = originalName;
+
+    if (matchedNormalRegionName !== '') {
+      const flag = regionFlags[matchedNormalRegionName] || '🏳️';
+      const counterKey = (isLow || isHigh) ? `${matchedNormalRegionName}_multi` : matchedNormalRegionName;
+      const count = (regionCounters.get(counterKey) || 0) + 1;
+
+      regionCounters.set(counterKey, count);
+      const serial = String(count).padStart(2, '0');
+      newName = `${flag} ${matchedNormalRegionName} ${serial}`;
+    }
+
+    if (isLow) {
+      newName += ` ${extractMultiplier(originalName, false)}`;
+    } else if (isHigh) {
+      newName += ` ${extractMultiplier(originalName, true)}`;
+    }
+
+    proxy.name = newName;
+    processedProxies.push(proxy);
+
+    for (const groupName of matchedGroups) {
+      if ((isLow || isHigh) && groupName !== NODE_RATE_LOW && groupName !== NODE_RATE_HIGH) continue;
+      if (groupName in regionGroups) {
+        regionGroups[groupName].proxies.push(newName);
+      }
+    }
+
+    if (!matchedNormalRegion) otherProxies.push(newName);
+  }
+
+  return { processedProxies, otherProxies, regionGroups };
+}
+
 function main(config) {
   if (!config || typeof config !== 'object' || Array.isArray(config)) {
     return { proxies: [], 'proxy-groups': [], rules: [] };
@@ -473,84 +561,7 @@ function main(config) {
 
     const enabledDefinitions = regionDefinitions.filter((def) => regionDefinitionsEnable[def.name]);
 
-    const regionGroups = {};
-    const regionFlags = {};
-    for (const r of enabledDefinitions) {
-      regionGroups[r.name] = { name: r.name, icon: r.icon, proxies: [] };
-      if ('flag' in r) {
-        regionFlags[r.name] = r.flag;
-      }
-    }
-
-    const processedProxies = [];
-    const otherProxies = [];
-    const regionCounters = new Map();
-    const fingerprintSupported = new Set(['vmess', 'vless', 'trojan', 'anytls']);
-
-    for (const proxy of rawProxies) {
-      if (!proxy || typeof proxy !== 'object' || Array.isArray(proxy)) continue;
-
-      const originalName = proxy.name;
-      if (typeof originalName !== 'string' || originalName.trim() === '') continue;
-
-      if (excludeFilterEnable && excludeFilter.test(originalName)) continue;
-
-      const proxyType = typeof proxy.type === 'string' ? proxy.type.toLowerCase() : 'unknown';
-
-      if (fingerprintSupported.has(proxyType)) {
-        if (proxy['client-fingerprint'] == null) {
-          proxy['client-fingerprint'] = 'chrome';
-        }
-      }
-
-      let matchedNormalRegionName = '';
-      let matchedNormalRegion = false;
-      const matchedGroups = [];
-
-      for (const region of enabledDefinitions) {
-        if (region.regex.test(originalName)) {
-          matchedGroups.push(region.name);
-          if (region.name !== NODE_RATE_LOW && region.name !== NODE_RATE_HIGH) {
-            matchedNormalRegion = true;
-            if (matchedNormalRegionName === '') {
-              matchedNormalRegionName = region.name;
-            }
-          }
-        }
-      }
-
-      const isLow = matchedGroups.includes(NODE_RATE_LOW);
-      const isHigh = matchedGroups.includes(NODE_RATE_HIGH);
-      let newName = originalName;
-
-      if (matchedNormalRegionName !== '') {
-        const flag = regionFlags[matchedNormalRegionName] || '🏳️';
-        const counterKey = (isLow || isHigh) ? `${matchedNormalRegionName}_multi` : matchedNormalRegionName;
-        const count = (regionCounters.get(counterKey) || 0) + 1;
-
-        regionCounters.set(counterKey, count);
-        const serial = String(count).padStart(2, '0');
-        newName = `${flag} ${matchedNormalRegionName} ${serial}`;
-      }
-
-      if (isLow) {
-        newName += ` ${extractMultiplier(originalName, false)}`;
-      } else if (isHigh) {
-        newName += ` ${extractMultiplier(originalName, true)}`;
-      }
-
-      proxy.name = newName;
-      processedProxies.push(proxy);
-
-      for (const groupName of matchedGroups) {
-        if ((isLow || isHigh) && groupName !== NODE_RATE_LOW && groupName !== NODE_RATE_HIGH) continue;
-        if (groupName in regionGroups) {
-          regionGroups[groupName].proxies.push(newName);
-        }
-      }
-
-      if (!matchedNormalRegion) otherProxies.push(newName);
-    }
+    const { processedProxies, otherProxies, regionGroups } = processProxies(rawProxies, enabledDefinitions);
 
     config.proxies = processedProxies;
 
@@ -834,6 +845,7 @@ function main(config) {
 
     return config;
   } catch (error) {
+    print('[Mihomo-Script-Rules] Error in main():', error.message || String(error));
     return { proxies: [], 'proxy-groups': [], rules: [] };
   }
 }
